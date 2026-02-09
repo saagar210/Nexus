@@ -1,0 +1,82 @@
+{
+  "info": {
+    "name": "Test Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth Endpoints",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "https://api.example.com/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"test\", \"password\": \"pass\"}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "https://api.example.com/auth/refresh",
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "my-token" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Debug", "value": "true", "disabled": true }
+        ],
+        "url": {
+          "raw": "https://api.example.com/users?page=1&limit=10",
+          "protocol": "https",
+          "host": ["api", "example", "com"],
+          "path": ["users"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "https://api.example.com/users",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "name", "value": "John" },
+            { "key": "email", "value": "john@example.com" }
+          ]
+        },
+        "auth": {
+          "type": "basic",
+          "basic": [
+            { "key": "username", "value": "admin" },
+            { "key": "password", "value": "secret" }
+          ]
+        }
+      }
+    }
+  ]
+}
