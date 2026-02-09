@@ -1,5 +1,6 @@
 import { request as undiciRequest } from 'undici'
 import type { HttpRequest, HttpResponse, IpcResult } from '@shared/ipc-types'
+import { resolveRequestVariables } from '../services/variable-resolver'
 
 const MAX_RESPONSE_SIZE = 10 * 1024 * 1024 // 10MB
 
@@ -15,10 +16,14 @@ export async function executeRequest(req: HttpRequest): Promise<IpcResult<HttpRe
   const startTime = performance.now()
 
   try {
-    const response = await undiciRequest(req.url, {
+    const resolved = req.variables
+      ? resolveRequestVariables({ url: req.url, headers: req.headers, body: req.body }, req.variables)
+      : { url: req.url, headers: req.headers, body: req.body }
+
+    const response = await undiciRequest(resolved.url, {
       method: req.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS',
-      headers: req.headers,
-      body: req.body || undefined,
+      headers: resolved.headers,
+      body: resolved.body || undefined,
       signal: controller.signal,
       headersTimeout: req.timeout || 30000,
       bodyTimeout: req.timeout || 30000,

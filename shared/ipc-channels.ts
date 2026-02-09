@@ -1,6 +1,8 @@
 import type {
   IpcResult, HttpRequest, HttpResponse,
-  SavedRequest, Workspace, HistoryEntry
+  SavedRequest, Workspace, HistoryEntry,
+  Collection, Environment, EnvVariable,
+  DiscoveredEndpoint, DiscoveryResult
 } from './ipc-types'
 
 export interface IpcChannelMap {
@@ -16,13 +18,43 @@ export interface IpcChannelMap {
   'db:workspace:get': { args: { id: string }; return: IpcResult<Workspace | null> }
   'db:workspace:getDefault': { args: void; return: IpcResult<Workspace> }
 
+  // Collections
+  'db:collection:list': { args: { workspaceId: string }; return: IpcResult<Collection[]> }
+  'db:collection:create': { args: { workspaceId: string; parentId?: string | null; name: string; description?: string | null }; return: IpcResult<Collection> }
+  'db:collection:update': { args: { id: string; name?: string; parentId?: string | null; sortOrder?: number; description?: string | null }; return: IpcResult<Collection> }
+  'db:collection:delete': { args: { id: string }; return: IpcResult<void> }
+  'db:collection:reorder': { args: { items: Array<{ id: string; sortOrder: number; parentId?: string | null }> }; return: IpcResult<void> }
+
   // Requests
   'db:request:save': { args: Omit<SavedRequest, 'createdAt' | 'updatedAt'>; return: IpcResult<SavedRequest> }
   'db:request:get': { args: { id: string }; return: IpcResult<SavedRequest | null> }
-  'db:request:list': { args: { workspaceId: string }; return: IpcResult<SavedRequest[]> }
+  'db:request:list': { args: { workspaceId: string; collectionId?: string | null }; return: IpcResult<SavedRequest[]> }
   'db:request:delete': { args: { id: string }; return: IpcResult<void> }
+  'db:request:reorder': { args: { items: Array<{ id: string; sortOrder: number; collectionId?: string | null }> }; return: IpcResult<void> }
+
+  // Environments
+  'db:env:list': { args: { workspaceId: string }; return: IpcResult<Environment[]> }
+  'db:env:create': { args: { workspaceId: string; name: string }; return: IpcResult<Environment> }
+  'db:env:update': { args: { id: string; name: string }; return: IpcResult<Environment> }
+  'db:env:delete': { args: { id: string }; return: IpcResult<void> }
+  'db:env:setActive': { args: { workspaceId: string; environmentId: string | null }; return: IpcResult<void> }
+  'db:env:getActive': { args: { workspaceId: string }; return: IpcResult<Environment | null> }
+  'db:env:variables:list': { args: { environmentId: string }; return: IpcResult<EnvVariable[]> }
+  'db:env:variables:set': { args: { environmentId: string; key: string; value: string; isSecret?: boolean }; return: IpcResult<EnvVariable> }
+  'db:env:variables:delete': { args: { id: string }; return: IpcResult<void> }
+  'db:env:resolvedVariables': { args: { workspaceId: string }; return: IpcResult<Record<string, string>> }
 
   // History
   'db:history:save': { args: Omit<HistoryEntry, 'id' | 'executedAt'>; return: IpcResult<HistoryEntry> }
   'db:history:list': { args: { workspaceId: string; limit?: number }; return: IpcResult<HistoryEntry[]> }
+
+  // Discovery
+  'discovery:start': { args: { workspaceId: string; baseUrl: string }; return: IpcResult<DiscoveryResult> }
+  'discovery:cancel': { args: void; return: IpcResult<void> }
+  'db:discovery:list': { args: { workspaceId: string }; return: IpcResult<DiscoveredEndpoint[]> }
+  'db:discovery:clear': { args: { workspaceId: string }; return: IpcResult<void> }
+
+  // Import
+  'import:postman': { args: { filePath: string; workspaceId: string }; return: IpcResult<{ collections: number; requests: number }> }
+  'dialog:openFile': { args: { filters?: Array<{ name: string; extensions: string[] }> }; return: IpcResult<string | null> }
 }

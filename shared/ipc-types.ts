@@ -8,6 +8,7 @@ export interface HttpRequest {
   headers: Record<string, string>
   body?: string
   timeout?: number
+  variables?: Record<string, string>
 }
 
 export interface HttpResponse {

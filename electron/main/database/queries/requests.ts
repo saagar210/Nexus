@@ -84,12 +84,37 @@ export function getRequest(id: string): SavedRequest | null {
   return row ? rowToRequest(row) : null
 }
 
-export function listRequests(workspaceId: string): SavedRequest[] {
+export function listRequests(workspaceId: string, collectionId?: string | null): SavedRequest[] {
   const db = getDatabase()
+  if (collectionId !== undefined) {
+    if (collectionId === null) {
+      const rows = db.prepare(
+        'SELECT * FROM requests WHERE workspace_id = ? AND collection_id IS NULL ORDER BY sort_order, created_at'
+      ).all(workspaceId) as RequestRow[]
+      return rows.map(rowToRequest)
+    }
+    const rows = db.prepare(
+      'SELECT * FROM requests WHERE workspace_id = ? AND collection_id = ? ORDER BY sort_order, created_at'
+    ).all(workspaceId, collectionId) as RequestRow[]
+    return rows.map(rowToRequest)
+  }
   const rows = db.prepare(
     'SELECT * FROM requests WHERE workspace_id = ? ORDER BY sort_order, created_at'
   ).all(workspaceId) as RequestRow[]
   return rows.map(rowToRequest)
+}
+
+export function reorderRequests(items: Array<{ id: string; sortOrder: number; collectionId?: string | null }>): void {
+  const db = getDatabase()
+  const stmt = db.prepare('UPDATE requests SET sort_order = ?, collection_id = ? WHERE id = ?')
+
+  const transaction = db.transaction(() => {
+    for (const item of items) {
+      stmt.run(item.sortOrder, item.collectionId ?? null, item.id)
+    }
+  })
+
+  transaction()
 }
 
 export function deleteRequest(id: string): void {

@@ -10,6 +10,11 @@ const api = {
   ): Promise<IpcChannelMap[K]['return']> => {
     return ipcRenderer.invoke(channel, ...args) as Promise<IpcChannelMap[K]['return']>
   },
+  on: (channel: string, callback: (...args: unknown[]) => void): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, ...args: unknown[]) => callback(...args)
+    ipcRenderer.on(channel, handler)
+    return () => ipcRenderer.removeListener(channel, handler)
+  },
 }
 
 contextBridge.exposeInMainWorld('api', api)
