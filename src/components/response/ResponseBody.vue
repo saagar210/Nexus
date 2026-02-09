@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useResponseStore } from '@/stores/response'
+import { useMonaco } from '@/composables/useMonaco'
 
 const responseStore = useResponseStore()
 const wordWrap = ref(true)
 const copied = ref(false)
+const editorContainer = ref<HTMLElement | null>(null)
 
 const contentType = computed(() => {
   const ct = responseStore.headers['content-type'] || ''
@@ -12,7 +14,7 @@ const contentType = computed(() => {
   if (ct.includes('html')) return 'html'
   if (ct.includes('xml')) return 'xml'
   if (ct.includes('css')) return 'css'
-  return 'text'
+  return 'plaintext'
 })
 
 const formattedBody = computed(() => {
@@ -24,6 +26,25 @@ const formattedBody = computed(() => {
     }
   }
   return responseStore.body
+})
+
+const { value: editorValue, setLanguage, editor } = useMonaco(editorContainer, {
+  language: contentType.value,
+  readOnly: true,
+  value: formattedBody.value,
+  minimap: false,
+  wordWrap: wordWrap.value ? 'on' : 'off',
+})
+
+// Update editor when response changes
+watch(formattedBody, (newVal) => {
+  editorValue.value = newVal
+  setLanguage(contentType.value)
+})
+
+// Toggle word wrap
+watch(wordWrap, (wrap) => {
+  editor.value?.updateOptions({ wordWrap: wrap ? 'on' : 'off' })
 })
 
 async function copyBody() {
@@ -55,9 +76,7 @@ async function copyBody() {
       </div>
     </div>
 
-    <!-- Body Content (replaced by Monaco in Step 8) -->
-    <div class="flex-1 overflow-auto p-3">
-      <pre class="text-xs font-mono text-nexus-text leading-relaxed" :class="{ 'whitespace-pre-wrap': wordWrap }">{{ formattedBody }}</pre>
-    </div>
+    <!-- Monaco Editor (read-only) -->
+    <div ref="editorContainer" class="flex-1" />
   </div>
 </template>

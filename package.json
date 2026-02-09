@@ -50,11 +50,13 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "vite": "^5.4.21",
+    "vite-plugin-monaco-editor": "^1.1.0",
     "vue-tsc": "^3.2.4"
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",
     "electron-squirrel-startup": "^1.0.1",
+    "monaco-editor": "^0.55.1",
     "nanoid": "^5.1.6",
     "pinia": "^3.0.4",
     "radix-vue": "^1.9.17",
