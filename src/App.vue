@@ -9,6 +9,7 @@ import { useWorkspaceStore } from '@/stores/workspace'
 import { useCollectionStore } from '@/stores/collection'
 import { useRequestStore } from '@/stores/request'
 import { useResponseStore } from '@/stores/response'
+import { useShortcuts } from '@/composables/useShortcuts'
 
 const workspaceStore = useWorkspaceStore()
 const collectionStore = useCollectionStore()
@@ -16,6 +17,44 @@ const requestStore = useRequestStore()
 const responseStore = useResponseStore()
 
 const showSaveDialog = ref(false)
+const workspaceViewRef = ref<InstanceType<typeof WorkspaceView> | null>(null)
+
+useShortcuts([
+  {
+    key: 'Enter',
+    meta: true,
+    handler: () => workspaceViewRef.value?.executeSend(),
+    description: 'Send request',
+  },
+  {
+    key: 's',
+    meta: true,
+    handler: () => handleSave(),
+    description: 'Save request',
+  },
+  {
+    key: 'n',
+    meta: true,
+    handler: () => handleNewRequest(),
+    description: 'New request',
+  },
+  {
+    key: 'l',
+    meta: true,
+    handler: () => workspaceViewRef.value?.focusUrlInput(),
+    description: 'Focus URL input',
+  },
+  {
+    key: 'Escape',
+    meta: false,
+    handler: () => {
+      if (responseStore.isLoading) {
+        window.api.invoke('http:cancel')
+      }
+    },
+    description: 'Cancel in-flight request',
+  },
+])
 
 onMounted(async () => {
   await workspaceStore.loadDefault()
@@ -98,15 +137,13 @@ async function saveHistory() {
   })
 }
 
-// Expose for keyboard shortcut wiring
-defineExpose({ handleSave, handleNewRequest, saveHistory })
 </script>
 
 <template>
   <div class="h-screen grid grid-rows-[40px_1fr_24px] grid-cols-[280px_1fr]">
     <TopBar class="col-span-2" />
     <Sidebar @new-request="handleNewRequest" />
-    <WorkspaceView @request-sent="saveHistory" />
+    <WorkspaceView ref="workspaceViewRef" @request-sent="saveHistory" />
     <StatusBar class="col-span-2" />
   </div>
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import SplitPane from '@/components/ui/SplitPane.vue'
 import UrlBar from '@/components/request/UrlBar.vue'
 import RequestEditor from '@/components/request/RequestEditor.vue'
@@ -7,11 +8,23 @@ import ResponseViewer from '@/components/response/ResponseViewer.vue'
 const emit = defineEmits<{
   'request-sent': []
 }>()
+
+const urlBarRef = ref<InstanceType<typeof UrlBar> | null>(null)
+
+function focusUrlInput() {
+  urlBarRef.value?.focusUrlInput()
+}
+
+function executeSend() {
+  urlBarRef.value?.executeSend()
+}
+
+defineExpose({ focusUrlInput, executeSend })
 </script>
 
 <template>
   <main class="overflow-hidden flex flex-col">
-    <UrlBar @request-sent="emit('request-sent')" />
+    <UrlBar ref="urlBarRef" @request-sent="emit('request-sent')" />
     <SplitPane class="flex-1" direction="vertical" :initial-split="50" :min-first="150" :min-second="150" storage-key="nexus:split:main">
       <template #first>
         <RequestEditor />
