@@ -9,12 +9,14 @@ import { useWorkspaceStore } from '@/stores/workspace'
 import { useCollectionStore } from '@/stores/collection'
 import { useRequestStore } from '@/stores/request'
 import { useResponseStore } from '@/stores/response'
+import { useEnvironmentStore } from '@/stores/environment'
 import { useShortcuts } from '@/composables/useShortcuts'
 
 const workspaceStore = useWorkspaceStore()
 const collectionStore = useCollectionStore()
 const requestStore = useRequestStore()
 const responseStore = useResponseStore()
+const environmentStore = useEnvironmentStore()
 
 const showSaveDialog = ref(false)
 const workspaceViewRef = ref<InstanceType<typeof WorkspaceView> | null>(null)
@@ -59,7 +61,10 @@ useShortcuts([
 onMounted(async () => {
   await workspaceStore.loadDefault()
   if (workspaceStore.currentWorkspace) {
-    await collectionStore.fetchAll(workspaceStore.currentWorkspace.id)
+    await Promise.all([
+      collectionStore.fetchAll(workspaceStore.currentWorkspace.id),
+      environmentStore.fetchAll(workspaceStore.currentWorkspace.id),
+    ])
   }
 })
 

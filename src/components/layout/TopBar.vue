@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useWorkspaceStore } from '@/stores/workspace'
+import EnvSelector from '@/components/environment/EnvSelector.vue'
+
+const workspaceStore = useWorkspaceStore()
 </script>
 
 <template>
@@ -8,10 +12,8 @@
       Nexus
     </div>
     <div class="text-xs text-nexus-text-muted">
-      Default Workspace
+      {{ workspaceStore.currentWorkspace?.name || 'Default Workspace' }}
     </div>
-    <div class="text-xs text-nexus-text-muted" style="-webkit-app-region: no-drag">
-      <!-- Environment selector placeholder -->
-    </div>
+    <EnvSelector />
   </header>
 </template>

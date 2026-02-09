@@ -19,6 +19,32 @@ export function useMonaco(
   let isUpdatingFromValue = false
   let resizeObserver: ResizeObserver | null = null
 
+  const variableDecorations = ref<string[]>([])
+
+  function updateVariableDecorations(editor: monaco.editor.IStandaloneCodeEditor) {
+    const model = editor.getModel()
+    if (!model) return
+
+    const text = model.getValue()
+    const decorations: monaco.editor.IModelDeltaDecoration[] = []
+    const regex = /\{\{(\w+)\}\}/g
+    let match
+
+    while ((match = regex.exec(text)) !== null) {
+      const startPos = model.getPositionAt(match.index)
+      const endPos = model.getPositionAt(match.index + match[0].length)
+      decorations.push({
+        range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
+        options: {
+          inlineClassName: 'nexus-variable-highlight',
+          hoverMessage: { value: `Variable: **${match[1]}**` },
+        },
+      })
+    }
+
+    editor.deltaDecorations(variableDecorations.value, decorations)
+  }
+
   function createEditor(container: HTMLElement) {
     const editor = monaco.editor.create(container, {
       value: value.value,
@@ -49,7 +75,11 @@ export function useMonaco(
       isUpdatingFromEditor = true
       value.value = editor.getValue()
       isUpdatingFromEditor = false
+      updateVariableDecorations(editor)
     })
+
+    // Initial decoration pass
+    updateVariableDecorations(editor)
 
     // Resize observer
     resizeObserver = new ResizeObserver(() => {

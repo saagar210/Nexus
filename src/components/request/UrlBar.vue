@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue'
 import { useRequestStore } from '@/stores/request'
 import { useResponseStore } from '@/stores/response'
+import { useWorkspaceStore } from '@/stores/workspace'
+import { useEnvironmentStore } from '@/stores/environment'
 
 const emit = defineEmits<{
   'request-sent': []
@@ -9,7 +11,14 @@ const emit = defineEmits<{
 
 const requestStore = useRequestStore()
 const responseStore = useResponseStore()
+const workspaceStore = useWorkspaceStore()
+const environmentStore = useEnvironmentStore()
 const urlInput = ref<HTMLInputElement | null>(null)
+
+const variableCount = computed(() => {
+  const matches = requestStore.url.match(/\{\{\w+\}\}/g)
+  return matches ? matches.length : 0
+})
 
 const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
 
@@ -44,6 +53,15 @@ async function executeSend() {
   responseStore.error = null
 
   const httpReq = requestStore.buildHttpRequest()
+
+  // Inject resolved variables from active environment
+  if (workspaceStore.currentWorkspace) {
+    const vars = await environmentStore.getResolvedVariablesFromDb(workspaceStore.currentWorkspace.id)
+    if (Object.keys(vars).length > 0) {
+      httpReq.variables = vars
+    }
+  }
+
   const result = await window.api.invoke('http:execute', httpReq)
 
   if (result.success) {
@@ -109,14 +127,23 @@ defineExpose({ focusUrlInput, executeSend })
     </div>
 
     <!-- URL Input -->
-    <input
-      ref="urlInput"
-      v-model="requestStore.url"
-      type="text"
-      placeholder="Enter URL or paste cURL"
-      class="flex-1 bg-nexus-bg border border-nexus-border rounded px-3 py-1.5 text-sm font-mono text-nexus-text placeholder-nexus-text-muted focus:outline-none focus:border-nexus-accent transition-colors"
-      @keydown="onKeydown"
-    />
+    <div class="flex-1 relative">
+      <input
+        ref="urlInput"
+        v-model="requestStore.url"
+        type="text"
+        placeholder="Enter URL or paste cURL"
+        class="w-full bg-nexus-bg border border-nexus-border rounded px-3 py-1.5 text-sm font-mono text-nexus-text placeholder-nexus-text-muted focus:outline-none focus:border-nexus-accent transition-colors"
+        :class="{ 'pr-20': variableCount > 0 }"
+        @keydown="onKeydown"
+      />
+      <span
+        v-if="variableCount > 0"
+        class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] bg-teal-600/20 text-teal-400 px-1.5 py-0.5 rounded font-medium"
+      >
+        {{ variableCount }} var{{ variableCount > 1 ? 's' : '' }}
+      </span>
+    </div>
 
     <!-- Send / Cancel Button -->
     <button

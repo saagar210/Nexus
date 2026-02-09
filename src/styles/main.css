@@ -40,3 +40,10 @@ body {
   background: var(--color-nexus-border);
   border-radius: 4px;
 }
+
+.nexus-variable-highlight {
+  color: #2dd4bf !important;
+  text-decoration: underline;
+  text-decoration-color: #2dd4bf80;
+  text-underline-offset: 2px;
+}
