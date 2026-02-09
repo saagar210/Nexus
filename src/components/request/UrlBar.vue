@@ -3,6 +3,10 @@ import { ref, computed } from 'vue'
 import { useRequestStore } from '@/stores/request'
 import { useResponseStore } from '@/stores/response'
 
+const emit = defineEmits<{
+  'request-sent': []
+}>()
+
 const requestStore = useRequestStore()
 const responseStore = useResponseStore()
 const urlInput = ref<HTMLInputElement | null>(null)
@@ -49,6 +53,7 @@ async function executeSend() {
   }
 
   responseStore.isLoading = false
+  emit('request-sent')
 }
 
 function onKeydown(e: KeyboardEvent) {

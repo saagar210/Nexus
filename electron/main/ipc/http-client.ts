@@ -20,7 +20,6 @@ export async function executeRequest(req: HttpRequest): Promise<IpcResult<HttpRe
       headers: req.headers,
       body: req.body || undefined,
       signal: controller.signal,
-      maxRedirections: 10,
       headersTimeout: req.timeout || 30000,
       bodyTimeout: req.timeout || 30000,
     })
