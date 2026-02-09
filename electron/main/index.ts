@@ -1,6 +1,10 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'node:path'
 import started from 'electron-squirrel-startup'
+import { initDatabase, closeDatabase } from './database/connection'
+import { getOrCreateDefaultWorkspace, listWorkspaces, getWorkspace } from './database/queries/workspaces'
+import { saveRequest, getRequest, listRequests, deleteRequest } from './database/queries/requests'
+import { saveHistoryEntry, listHistory } from './database/queries/history'
 
 if (started) app.quit()
 
@@ -35,12 +39,50 @@ const createWindow = (): void => {
   }
 }
 
-// IPC Handlers
-ipcMain.handle('app:ping', async () => {
-  return { success: true, data: { timestamp: Date.now() } }
+function wrapHandler<T>(fn: () => T): (_event: Electron.IpcMainInvokeEvent) => Promise<{ success: true; data: T } | { success: false; error: string }>
+function wrapHandler<A, T>(fn: (args: A) => T): (_event: Electron.IpcMainInvokeEvent, args: A) => Promise<{ success: true; data: T } | { success: false; error: string }>
+function wrapHandler<A, T>(fn: (args?: A) => T) {
+  return async (_event: Electron.IpcMainInvokeEvent, args?: A) => {
+    try {
+      const data = fn(args)
+      return { success: true, data }
+    } catch (e) {
+      return { success: false, error: e instanceof Error ? e.message : 'Unknown error' }
+    }
+  }
+}
+
+function registerIpcHandlers(): void {
+  // System
+  ipcMain.handle('app:ping', async () => {
+    return { success: true, data: { timestamp: Date.now() } }
+  })
+
+  // Workspaces
+  ipcMain.handle('db:workspace:list', wrapHandler(listWorkspaces))
+  ipcMain.handle('db:workspace:get', wrapHandler((args: { id: string }) => getWorkspace(args.id)))
+  ipcMain.handle('db:workspace:getDefault', wrapHandler(getOrCreateDefaultWorkspace))
+
+  // Requests
+  ipcMain.handle('db:request:save', wrapHandler((args: Omit<import('@shared/ipc-types').SavedRequest, 'createdAt' | 'updatedAt'>) => saveRequest(args)))
+  ipcMain.handle('db:request:get', wrapHandler((args: { id: string }) => getRequest(args.id)))
+  ipcMain.handle('db:request:list', wrapHandler((args: { workspaceId: string }) => listRequests(args.workspaceId)))
+  ipcMain.handle('db:request:delete', wrapHandler((args: { id: string }) => deleteRequest(args.id)))
+
+  // History
+  ipcMain.handle('db:history:save', wrapHandler((args: Omit<import('@shared/ipc-types').HistoryEntry, 'id' | 'executedAt'>) => saveHistoryEntry(args)))
+  ipcMain.handle('db:history:list', wrapHandler((args: { workspaceId: string; limit?: number }) => listHistory(args.workspaceId, args.limit)))
+}
+
+app.whenReady().then(() => {
+  initDatabase()
+  registerIpcHandlers()
+  createWindow()
 })
 
-app.whenReady().then(createWindow)
+app.on('before-quit', () => {
+  closeDatabase()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
