@@ -87,5 +87,29 @@ export function getMigrations(): Migration[] {
         CREATE INDEX idx_collections_workspace ON collections(workspace_id);
       `,
     },
+    {
+      name: '002_discovered_endpoints',
+      sql: `
+        CREATE TABLE discovered_endpoints (
+          id TEXT PRIMARY KEY,
+          workspace_id TEXT REFERENCES workspaces(id) ON DELETE CASCADE,
+          path TEXT NOT NULL,
+          method TEXT NOT NULL,
+          summary TEXT,
+          description TEXT,
+          parameters TEXT,
+          request_schema TEXT,
+          response_schema TEXT,
+          tags TEXT DEFAULT '[]',
+          auth_required BOOLEAN DEFAULT false,
+          deprecated BOOLEAN DEFAULT false,
+          source TEXT NOT NULL,
+          discovered_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX idx_discovered_workspace ON discovered_endpoints(workspace_id);
+        CREATE INDEX idx_discovered_method ON discovered_endpoints(method);
+      `,
+    },
   ]
 }
