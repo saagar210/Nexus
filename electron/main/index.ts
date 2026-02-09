@@ -5,6 +5,7 @@ import { initDatabase, closeDatabase } from './database/connection'
 import { getOrCreateDefaultWorkspace, listWorkspaces, getWorkspace } from './database/queries/workspaces'
 import { saveRequest, getRequest, listRequests, deleteRequest } from './database/queries/requests'
 import { saveHistoryEntry, listHistory } from './database/queries/history'
+import { executeRequest, cancelActiveRequest } from './ipc/http-client'
 
 if (started) app.quit()
 
@@ -68,6 +69,19 @@ function registerIpcHandlers(): void {
   ipcMain.handle('db:request:get', wrapHandler((args: { id: string }) => getRequest(args.id)))
   ipcMain.handle('db:request:list', wrapHandler((args: { workspaceId: string }) => listRequests(args.workspaceId)))
   ipcMain.handle('db:request:delete', wrapHandler((args: { id: string }) => deleteRequest(args.id)))
+
+  // HTTP
+  ipcMain.handle('http:execute', async (_event, args: import('@shared/ipc-types').HttpRequest) => {
+    return executeRequest(args)
+  })
+  ipcMain.handle('http:cancel', async () => {
+    try {
+      cancelActiveRequest()
+      return { success: true, data: undefined }
+    } catch (e) {
+      return { success: false, error: e instanceof Error ? e.message : 'Unknown error' }
+    }
+  })
 
   // History
   ipcMain.handle('db:history:save', wrapHandler((args: Omit<import('@shared/ipc-types').HistoryEntry, 'id' | 'executedAt'>) => saveHistoryEntry(args)))
