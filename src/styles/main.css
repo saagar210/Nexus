@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-nexus-bg: #09090b;
+  --color-nexus-surface: #18181b;
+  --color-nexus-border: #27272a;
+  --color-nexus-text: #fafafa;
+  --color-nexus-text-muted: #a1a1aa;
+  --color-nexus-accent: #3b82f6;
+  --color-nexus-success: #22c55e;
+  --color-nexus-warning: #eab308;
+  --color-nexus-error: #ef4444;
+
+  --color-method-get: #22c55e;
+  --color-method-post: #3b82f6;
+  --color-method-put: #f97316;
+  --color-method-patch: #a855f7;
+  --color-method-delete: #ef4444;
+  --color-method-head: #06b6d4;
+  --color-method-options: #6b7280;
+}
+
+body {
+  background-color: var(--color-nexus-bg);
+  color: var(--color-nexus-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  margin: 0;
+  overflow: hidden;
+  user-select: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-nexus-border);
+  border-radius: 4px;
+}
