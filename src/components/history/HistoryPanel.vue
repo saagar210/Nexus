@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useHistoryStore } from '@/stores/history'
+import type { HistoryEntry } from '@shared/ipc-types'
 import { useRequestStore } from '@/stores/request'
 import { useResponseStore } from '@/stores/response'
 import HistoryItem from './HistoryItem.vue'
@@ -10,7 +11,7 @@ const responseStore = useResponseStore()
 
 const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
 
-function loadFromHistory(entry: typeof historyStore.entries.value[0]) {
+function loadFromHistory(entry: HistoryEntry) {
   requestStore.method = entry.method
   requestStore.url = entry.url
   requestStore.currentRequestId = entry.requestId
