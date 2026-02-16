@@ -7,11 +7,14 @@
   "private": true,
   "scripts": {
     "start": "electron-forge start",
+    "lean:start": "node scripts/lean-dev.mjs",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "clean:heavy": "node scripts/clean-heavy.mjs",
+    "clean:full": "node scripts/clean-full.mjs"
   },
   "keywords": [],
   "author": {

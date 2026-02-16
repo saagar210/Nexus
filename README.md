@@ -116,12 +116,45 @@ pnpm install
 # Start development server
 pnpm start
 
+# Start development server in low-disk "lean dev" mode
+pnpm lean:start
+
 # Run tests
 pnpm test
 
 # Build for production
 pnpm package
 ```
+
+### Dev Modes
+
+#### Normal Dev
+```bash
+pnpm start
+```
+- Fastest incremental startup after the first run.
+- Keeps build artifacts in the repo (for example `.vite/`) until you clean them.
+
+#### Lean Dev (low disk)
+```bash
+pnpm lean:start
+```
+- Starts the app with an ephemeral Vite cache directory in your system temp folder.
+- Automatically cleans heavy build artifacts (`.vite/`, `out/`, `dist/`, `.webpack/`) when the app exits.
+- Tradeoff: slightly slower startup on each run because caches are not reused across sessions.
+
+### Cleanup Commands
+
+```bash
+# Remove heavy build artifacts only (safe daily cleanup)
+pnpm clean:heavy
+
+# Remove all reproducible local caches (larger reset, slower next startup)
+pnpm clean:full
+```
+
+- `clean:heavy` preserves dependencies to keep regular startup speed reasonable.
+- `clean:full` also removes `node_modules/` and other reproducible caches, which frees more disk but requires reinstalling dependencies.
 
 ### Project Structure
 
